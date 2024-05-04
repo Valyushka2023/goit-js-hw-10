@@ -1,82 +1,129 @@
-// Описаний в документації
-import flatpickr from "flatpickr";
-// Додатковий імпорт стилів
-import "flatpickr/dist/flatpickr.min.css";
-// Описаний у документації
-import iziToast from "izitoast";
-// Додатковий імпорт стилів
-import "izitoast/dist/css/iziToast.min.css";
 
+// 1. Import libraries
+import flatpickr from "flatpickr"; 
+import "flatpickr/dist/flatpickr.min.css"; 
+import iziToast from "izitoast"; 
+import "izitoast/dist/css/iziToast.min.css"; 
 
-const datetimePicker = document.querySelector('#datetime-picker');
-const startBtn = document.querySelector('[data-start]');
-const timerFields = document.querySelectorAll('.timer .field .value');
+// 2. Declaration of variables
+const datetimePicker = document.querySelector('#datetime-picker'); 
+const startBtn = document.querySelector('[data-start]'); 
+const stopBtn = document.querySelector('[data-stop]'); 
+const day = document.querySelector('[data-days]');
+const hour = document.querySelector('[data-hours]');
+const min = document.querySelector('[data-minutes]');
+const sec = document.querySelector('[data-seconds]');
 
-let userSelectedDate = null; // Змінна для зберігання дати, обраної користувачем
-let intervalId = null; // Змінна для зберігання ID таймера
+let userSelectedDate = null; 
+let intervalId = null; 
 
-// Ініціалізація flatpickr
+// 3. Flatpickr initialization with explicit error handling
 flatpickr(datetimePicker, {
-    enableTime: true,
-    time_24hr: true,
-    defaultDate: new Date(),
-    minuteIncrement: 1,
-    onClose(selectedDates) {
-        userSelectedDate = selectedDates[0]; // Зберігаємо дату, обрану користувачем
+  enableTime: true, 
+  time_24hr: true, 
+  defaultDate: new Date(), 
+  minuteIncrement: 1, 
 
-        // Перевірка дати: минуле або майбутнє
-        if (userSelectedDate < new Date()) {
-            iziToast.error({
-                title: 'Помилка!',
-                message: 'Будь ласка, виберіть дату в майбутньому',
-                position: 'topRight'
-            });
-            startBtn.disabled = true; // Блокуємо кнопку Start
-            return;
-        }
-
-        startBtn.disabled = false; // Розблоковуємо кнопку Start
+  onClose(selectedDates) { 
+    userSelectedDate = selectedDates[0]; 
+    if (userSelectedDate < new Date()) { 
+      iziToast.error({
+        title: 'Error!',
+        message: 'Please choose a date in the future',
+        position: 'topRight'
+      });
+      startBtn.disabled = true; 
+      return;
     }
-});
-
-// Обробник події натискання кнопки Start
-startBtn.addEventListener('click', () => {
-    if (userSelectedDate === null) return; // Перевірка, чи дата вибрана
-
-    // Обчислення залишкового часу
-    const targetDate = userSelectedDate.getTime(); // Отримуємо час в мілісекундах
-    const now = new Date().getTime(); // Отримуємо поточний час в мілісекундах
-    const timeLeft = targetDate - now;
-
-    // Перевірка: чи час вже минув
-    if (timeLeft <= 0) {
-        iziToast.info({
-            title: 'Таймер завершено!',
-            message: 'Обрана дата вже минула',
-            position: 'topRight'
-        });
-        return;
-    }
-
-    // Запуск таймера
-    startBtn.disabled = true; // Блокуємо кнопку Start
-    stopBtn.disabled = false;
-    datetimePicker.disabled = true;
-
-    intervalId = setInterval(updateTimer, 1000);
-});
-
-// Обробник події натискання кнопки Stop
-stopBtn.addEventListener('click', () => {
-    if (intervalId === null) return;
-
-    clearInterval(intervalId);
-    intervalId = null;
 
     startBtn.disabled = false;
-    stopBtn.disabled = true;
-    datetimePicker.disabled = false;
-
-    // Очищаємо інтерфейс таймера
-    timerFields.forEach(field => field.textContent = '00');
+  },
 });
+
+// 4. StartBtn button click event handler
+startBtn.addEventListener('click', () => {
+  if (userSelectedDate === null) return;
+
+  const targetDate = userSelectedDate.getTime(); 
+  const now = new Date().getTime(); 
+
+  if (targetDate <= now) { 
+    iziToast.error({
+      title: 'Error!',
+      message: 'The selected date has already passed',
+      position: 'topRight'
+    });
+    return;
+  }
+
+  startBtn.disabled = true; 
+  stopBtn.disabled = false; 
+  datetimePicker.disabled = true; 
+
+  intervalId = setInterval(() => updateTimer(targetDate), 1000);
+});
+
+// 5. StopBtn button click event handler
+stopBtn.addEventListener('click', () => {
+  clearInterval(intervalId); 
+  startBtn.disabled = false; 
+  stopBtn.disabled = true; 
+  datetimePicker.disabled = false; 
+  resetTimerFields();
+});
+
+// 6. Timer update function
+function updateTimer(targetDate) {
+  const now = new Date().getTime(); 
+  const timeLeft = targetDate - now; 
+
+  if (timeLeft <= 0) {
+    clearInterval(intervalId); 
+    startBtn.disabled = false; 
+    stopBtn.disabled = true; 
+    datetimePicker.disabled = false; 
+    resetTimerFields();
+    iziToast.info({
+      title: 'The timer has ended!',
+      message: 'The selected date has arrived',
+      position: 'topRight'
+    });
+    return;
+  }
+
+  const { days, hours, minutes, seconds } = convertMs(timeLeft);
+
+  // Displaying the remaining time in the timer fields
+  day.textContent = formatTimeValue(days);
+  hour.textContent = formatTimeValue(hours);
+  min.textContent = formatTimeValue(minutes);
+  sec.textContent = formatTimeValue(seconds);
+}
+
+// 7. The function of converting milliseconds to days, hours, minutes and seconds
+function convertMs(ms) {
+  const second = 1000;
+  const minute = second * 60;
+  const hour = minute * 60;
+  const day = hour * 24;
+
+  const days = Math.floor(ms / day);
+  const hours = Math.floor((ms % day) / hour);
+  const minutes = Math.floor(((ms % day) % hour) / minute);
+  const seconds = Math.floor((((ms % day) % hour) % minute) / second);
+
+  return { days, hours, minutes, seconds };
+}
+// console.log(convertMs(2000)); // {days: 0, hours: 0, minutes: 0, seconds: 2}
+// console.log(convertMs(140000)); // {days: 0, hours: 0, minutes: 2, seconds: 20}
+// console.log(convertMs(24140000)); // {days: 0, hours: 6 minutes: 42, seconds: 20}
+
+// 8. Time value formatting function (adds a leading zero if the value is less than 10)
+function formatTimeValue(value) {
+  return value < 10 ? "0" + value : value;
+}
+
+// 9. Timer field reset function to '00'
+function resetTimerFields() {
+  [day, hour, min, sec].forEach(field => field.textContent = '00');
+}

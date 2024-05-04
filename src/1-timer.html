@@ -6,49 +6,44 @@
     <title>Timer</title>
     <link
       rel="stylesheet"
-      href="https://unpkg.com/flatpickr/dist/flatpickr.min.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/izitoast/1.4.2/css/iziToast.min.css"
+      href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap"
     />
     <link rel="stylesheet" href="./css/1-timer.css" />
   </head>
+
   <body>
     <a href="./index.html">❮Go back</a>
-    <h1>Таймер зворотного відліку</h1>
-
-    <div class="container">
+    <h1>Countdown timer</h1>
+    <div class="container-timer">
       <input
         type="text"
         id="datetime-picker"
-        placeholder="Виберіть дату і час"
+        placeholder="Select date and time"
       />
-      <button type="button" data-start>Старт</button>
-
+      <div class="buttons">
+        <button type="button" data-start>Start</button>
+        <button type="button" data-stop disabled>Stop</button>
+      </div>
       <div class="timer">
         <div class="field">
           <span class="value" data-days>00</span>
-          <span class="label">Днів</span>
+          <span class="label">Days</span>
         </div>
         <div class="field">
           <span class="value" data-hours>00</span>
-          <span class="label">Годин</span>
+          <span class="label">Hours</span>
         </div>
         <div class="field">
           <span class="value" data-minutes>00</span>
-          <span class="label">Хвилин</span>
+          <span class="label">Minutes</span>
         </div>
         <div class="field">
           <span class="value" data-seconds>00</span>
-          <span class="label">Секунд</span>
+          <span class="label">Seconds</span>
         </div>
       </div>
     </div>
 
-    <script src="https://unpkg.com/flatpickr"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/izitoast/1.4.2/js/iziToast.min.js"></script>
-    <!-- <script src="1-timer.js"></script> -->
     <script type="module" src="./js/1-timer.js"></script>
   </body>
 </html>
